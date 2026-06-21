@@ -1,14 +1,16 @@
 package com.smd.ticlib.integration.crafttweaker;
 
-import com.smd.ticlib.util.TicToolStacks;
-import com.smd.ticlib.util.TicToolTraits;
-import com.smd.ticlib.util.TicToolStats;
+import com.smd.ticlib.api.TicFluids;
+import com.smd.ticlib.api.TicItems;
+import com.smd.ticlib.api.TicStats;
+import com.smd.ticlib.api.TicTraits;
 import crafttweaker.annotations.ZenRegister;
 import crafttweaker.api.entity.IEntityEquipmentSlot;
 import crafttweaker.api.item.IItemStack;
 import crafttweaker.api.minecraft.CraftTweakerMC;
 import net.minecraft.inventory.EntityEquipmentSlot;
 import net.minecraft.item.ItemStack;
+import net.minecraftforge.fluids.FluidStack;
 import stanhebben.zenscript.annotations.ZenExpansion;
 import stanhebben.zenscript.annotations.ZenMethod;
 
@@ -30,7 +32,7 @@ public final class ItemStackExpansion {
      */
     @ZenMethod
     public static boolean isTool(IItemStack stack) {
-        return TicToolStacks.isTicTool(toStackCopy(stack));
+        return TicItems.isTool(toStackCopy(stack));
     }
 
     /**
@@ -38,7 +40,7 @@ public final class ItemStackExpansion {
      */
     @ZenMethod
     public static boolean isArmor(IItemStack stack) {
-        return TicToolStacks.isTicArmor(toStackCopy(stack));
+        return TicItems.isArmor(toStackCopy(stack));
     }
 
     /**
@@ -46,7 +48,7 @@ public final class ItemStackExpansion {
      */
     @ZenMethod
     public static String getArmorType(IItemStack stack) {
-        return TicToolStacks.getArmorType(toStackCopy(stack));
+        return TicItems.getArmorType(toStackCopy(stack));
     }
 
     /**
@@ -54,7 +56,7 @@ public final class ItemStackExpansion {
      */
     @ZenMethod
     public static IEntityEquipmentSlot getArmorSlot(IItemStack stack) {
-        EntityEquipmentSlot slot = TicToolStacks.getArmorSlot(toStackCopy(stack));
+        EntityEquipmentSlot slot = TicItems.getArmorSlot(toStackCopy(stack));
         return slot == null ? null : CraftTweakerMC.getIEntityEquipmentSlot(slot);
     }
 
@@ -63,7 +65,7 @@ public final class ItemStackExpansion {
      */
     @ZenMethod
     public static String[] getMaterials(IItemStack stack) {
-        return TicToolStacks.getMaterials(toStackCopy(stack));
+        return TicItems.getMaterials(toStackCopy(stack));
     }
 
     /**
@@ -71,7 +73,7 @@ public final class ItemStackExpansion {
      */
     @ZenMethod
     public static String[] getTraits(IItemStack stack) {
-        return TicToolTraits.getTraits(toStackCopy(stack));
+        return TicTraits.getTraits(toStackCopy(stack));
     }
 
     /**
@@ -79,7 +81,7 @@ public final class ItemStackExpansion {
      */
     @ZenMethod
     public static boolean hasTrait(IItemStack stack, String traitId) {
-        return TicToolTraits.hasTrait(toStackCopy(stack), traitId);
+        return TicTraits.hasTrait(toStackCopy(stack), traitId);
     }
 
     /**
@@ -87,7 +89,7 @@ public final class ItemStackExpansion {
      */
     @ZenMethod
     public static int getTraitColor(IItemStack stack, String traitId) {
-        return TicToolTraits.getTraitColor(toStackCopy(stack), traitId);
+        return TicTraits.getTraitColor(toStackCopy(stack), traitId);
     }
 
     /**
@@ -95,7 +97,7 @@ public final class ItemStackExpansion {
      */
     @ZenMethod
     public static int getTraitLevel(IItemStack stack, String traitId) {
-        return TicToolTraits.getTraitLevel(toStackCopy(stack), traitId);
+        return TicTraits.getTraitLevel(toStackCopy(stack), traitId);
     }
 
     /**
@@ -103,7 +105,7 @@ public final class ItemStackExpansion {
      */
     @ZenMethod
     public static String[] getStats(IItemStack stack) {
-        return TicToolStats.getStats(toStackCopy(stack));
+        return TicStats.getStats(toStackCopy(stack));
     }
 
     /**
@@ -111,7 +113,7 @@ public final class ItemStackExpansion {
      */
     @ZenMethod
     public static boolean hasStat(IItemStack stack, String statName) {
-        return TicToolStats.hasStat(toStackCopy(stack), statName);
+        return TicStats.hasStat(toStackCopy(stack), statName);
     }
 
     /**
@@ -119,7 +121,7 @@ public final class ItemStackExpansion {
      */
     @ZenMethod
     public static float getFloatStat(IItemStack stack, String statName) {
-        return TicToolStats.getFloatStat(toStackCopy(stack), statName);
+        return TicStats.getFloat(toStackCopy(stack), statName);
     }
 
     /**
@@ -127,7 +129,29 @@ public final class ItemStackExpansion {
      */
     @ZenMethod
     public static int getIntStat(IItemStack stack, String statName) {
-        return TicToolStats.getIntStat(toStackCopy(stack), statName);
+        return TicStats.getInt(toStackCopy(stack), statName);
+    }
+
+    @ZenMethod
+    public static int getFluidCapacity(IItemStack stack) {
+        return TicFluids.of(toStackCopy(stack)).primaryCapacity();
+    }
+
+    @ZenMethod
+    public static int getFluidAmount(IItemStack stack) {
+        FluidStack fluid = TicFluids.of(toStackCopy(stack)).primaryFluid();
+        return fluid == null ? 0 : fluid.amount;
+    }
+
+    @ZenMethod
+    public static String getFluidName(IItemStack stack) {
+        FluidStack fluid = TicFluids.of(toStackCopy(stack)).primaryFluid();
+        return fluid == null || fluid.getFluid() == null ? "" : fluid.getFluid().getName();
+    }
+
+    @ZenMethod
+    public static boolean hasAnyFluidTank(IItemStack stack) {
+        return TicFluids.of(toStackCopy(stack)).hasAnyTank();
     }
 
     // ===================== 链式修改（返回新物品，不影响原物品） =====================
@@ -139,7 +163,7 @@ public final class ItemStackExpansion {
     @ZenMethod
     public static IItemStack withTrait(IItemStack stack, String traitId, int color, int level) {
         ItemStack copy = toStackCopy(stack).copy();
-        ItemStack result = TicToolTraits.withRegisteredTrait(copy, traitId, color, level);
+        ItemStack result = TicTraits.withRegisteredTrait(copy, traitId, color, level);
         return result.isEmpty() ? stack : CraftTweakerMC.getIItemStack(result);
     }
 
@@ -150,7 +174,7 @@ public final class ItemStackExpansion {
     @ZenMethod
     public static IItemStack withoutTrait(IItemStack stack, String traitId) {
         ItemStack copy = toStackCopy(stack).copy();
-        ItemStack result = TicToolTraits.withoutRegisteredTrait(copy, traitId);
+        ItemStack result = TicTraits.withoutRegisteredTrait(copy, traitId);
         return result.isEmpty() ? stack : CraftTweakerMC.getIItemStack(result);
     }
 
@@ -161,7 +185,7 @@ public final class ItemStackExpansion {
     @ZenMethod
     public static IItemStack withBroken(IItemStack stack, boolean broken) {
         ItemStack copy = toStackCopy(stack).copy();
-        boolean success = TicToolStats.setBroken(copy, broken);
+        boolean success = TicStats.setBroken(copy, broken);
         return success ? CraftTweakerMC.getIItemStack(copy) : stack;
     }
 
@@ -171,17 +195,21 @@ public final class ItemStackExpansion {
     @ZenMethod
     public static IItemStack withStat(IItemStack stack, String statName, float amount, String token) {
         ItemStack copy = toStackCopy(stack).copy();
-        boolean success = TicToolStats.addStat(copy, statName, amount, token);
+        boolean success = TicStats.add(copy, statName, amount, token);
         return success ? CraftTweakerMC.getIItemStack(copy) : stack;
     }
 
-    /**
-     * 返回一个添加了整数属性的新物品。
-     */
     @ZenMethod
-    public static IItemStack withIntStat(IItemStack stack, String statName, int amount, String token) {
+    public static IItemStack withFluidCapacity(IItemStack stack, int capacity) {
         ItemStack copy = toStackCopy(stack).copy();
-        boolean success = TicToolStats.addIntStat(copy, statName, amount, token);
+        boolean success = TicFluids.of(copy).setPrimaryCapacity(capacity);
+        return success ? CraftTweakerMC.getIItemStack(copy) : stack;
+    }
+
+    @ZenMethod
+    public static IItemStack withoutFluid(IItemStack stack) {
+        ItemStack copy = toStackCopy(stack).copy();
+        boolean success = TicFluids.of(copy).clearPrimaryFluid();
         return success ? CraftTweakerMC.getIItemStack(copy) : stack;
     }
 

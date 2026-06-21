@@ -1,4 +1,4 @@
-package com.smd.ticlib.util;
+package com.smd.ticlib.core.target;
 
 import c4.conarm.lib.ArmoryRegistry;
 import c4.conarm.lib.armor.ArmorCore;
@@ -17,7 +17,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-public final class TicToolStacks {
+public final class TicTargets {
 
     private static final List<EntityEquipmentSlot> ARMOR_SLOTS = Arrays.asList(
             EntityEquipmentSlot.HEAD,
@@ -26,42 +26,47 @@ public final class TicToolStacks {
             EntityEquipmentSlot.FEET
     );
 
-    private TicToolStacks() {
+    private TicTargets() {
+    }
+
+    public static TicTarget resolve(ItemStack stack) {
+        return new TicTarget(stack, kindOf(stack));
+    }
+
+    public static TicTargetKind kindOf(ItemStack stack) {
+        if (isArmor(stack)) {
+            return TicTargetKind.ARMOR;
+        }
+        if (isTool(stack)) {
+            return TicTargetKind.TOOL;
+        }
+        return TicTargetKind.UNKNOWN;
     }
 
     public static boolean isEmpty(ItemStack stack) {
         return stack == null || stack.isEmpty();
     }
 
-    public static boolean isTicTool(ItemStack stack) {
-        if (isEmpty(stack) || isTicArmor(stack)) {
+    public static boolean isTool(ItemStack stack) {
+        if (isEmpty(stack) || isArmor(stack)) {
             return false;
         }
-
         if (stack.getItem() instanceof ToolCore) {
             return true;
         }
-
-        if (stack.getItem() instanceof ITinkerable) {
-            return hasTicData(stack);
-        }
-
-        return false;
+        return stack.getItem() instanceof ITinkerable && hasTicData(stack);
     }
 
-    public static boolean isTicArmor(ItemStack stack) {
+    public static boolean isArmor(ItemStack stack) {
         return !isEmpty(stack) && stack.getItem() instanceof ArmorCore;
     }
 
-    public static boolean isTicTarget(ItemStack stack) {
-        return isTicTool(stack) || isTicArmor(stack);
+    public static boolean isTarget(ItemStack stack) {
+        return isTool(stack) || isArmor(stack);
     }
 
     public static EntityEquipmentSlot getArmorSlot(ItemStack stack) {
-        if (!isTicArmor(stack)) {
-            return null;
-        }
-        return ((ArmorCore) stack.getItem()).armorType;
+        return isArmor(stack) ? ((ArmorCore) stack.getItem()).armorType : null;
     }
 
     public static String getArmorType(ItemStack stack) {
@@ -123,7 +128,11 @@ public final class TicToolStacks {
         }
     }
 
-    public static ItemStack[] getAllKnownTicItems() {
+    public static List<EntityEquipmentSlot> armorSlots() {
+        return ARMOR_SLOTS;
+    }
+
+    public static ItemStack[] getAllKnownItems() {
         Map<String, ItemStack> items = new LinkedHashMap<>();
         for (ToolCore tool : TinkerRegistry.getTools()) {
             if (tool.getRegistryName() != null) {
@@ -139,24 +148,21 @@ public final class TicToolStacks {
     }
 
     public static String[] getMaterials(ItemStack stack) {
-        if (!isTicTarget(stack)) {
-            return TicToolNbt.EMPTY_STRINGS;
+        if (!isTarget(stack)) {
+            return com.smd.ticlib.core.nbt.TicNbt.EMPTY_STRINGS;
         }
-        return TicToolNbt.readStringList(TagUtil.getBaseMaterialsTagList(stack));
+        return com.smd.ticlib.core.nbt.TicNbt.readStringList(TagUtil.getBaseMaterialsTagList(stack));
     }
 
     public static List<String> getMaterialList(ItemStack stack) {
         return new ArrayList<>(Arrays.asList(getMaterials(stack)));
     }
 
-    public static List<EntityEquipmentSlot> armorSlots() {
-        return ARMOR_SLOTS;
-    }
-
     private static boolean hasTicData(ItemStack stack) {
         if (isEmpty(stack)) {
             return false;
         }
-        return TagUtil.getTagSafe(stack).hasKey(Tags.BASE_DATA, 10) || TagUtil.getTagSafe(stack).hasKey(Tags.TOOL_DATA, 10);
+        return TagUtil.getTagSafe(stack).hasKey(Tags.BASE_DATA, 10)
+                || TagUtil.getTagSafe(stack).hasKey(Tags.TOOL_DATA, 10);
     }
 }

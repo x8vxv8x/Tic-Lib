@@ -1,11 +1,10 @@
 package com.smd.ticlib.integration.crafttweaker.event;
 
-import com.smd.ticlib.stats.TicStatPatches;
-import com.smd.ticlib.util.TicToolTraits;
+import com.smd.ticlib.api.TicStats;
+import com.smd.ticlib.api.TicTraits;
 import crafttweaker.annotations.ZenRegister;
 import net.minecraft.nbt.NBTTagCompound;
 import slimeknights.tconstruct.library.materials.Material;
-import slimeknights.tconstruct.library.utils.TagUtil;
 import stanhebben.zenscript.annotations.ZenClass;
 import stanhebben.zenscript.annotations.ZenGetter;
 import stanhebben.zenscript.annotations.ZenMethod;
@@ -56,12 +55,12 @@ public class TicItemBuildEvent {
 
     @ZenMethod
     public String[] getTraits() {
-        return TicToolTraits.getTraits(root);
+        return TicTraits.getTraits(root);
     }
 
     @ZenMethod
     public boolean hasTrait(String traitId) {
-        return TicToolTraits.hasTrait(root, traitId);
+        return TicTraits.hasTrait(root, traitId);
     }
 
     @ZenMethod
@@ -71,72 +70,56 @@ public class TicItemBuildEvent {
 
     @ZenMethod
     public boolean applyRegisteredTrait(String traitId, int color, int level) {
-        return TicToolTraits.applyBuildTrait(root, traitId, color, level);
+        return TicTraits.addBuildTrait(root, traitId, color, level);
     }
 
     @ZenMethod
     public boolean removeTrait(String traitId) {
-        return TicToolTraits.removeBuildTrait(root, traitId);
+        return TicTraits.removeBuildTrait(root, traitId);
     }
 
     @ZenMethod
     public String[] getBaseModifiers() {
-        return TicToolTraits.getBaseModifiers(root);
+        return TicTraits.getBaseModifiers(root);
     }
 
     @ZenMethod
     public boolean hasBaseModifier(String traitOrModifierId) {
-        return TicToolTraits.hasBaseModifier(root, traitOrModifierId);
+        return TicTraits.hasBaseModifier(root, traitOrModifierId);
     }
 
     @ZenMethod
     public boolean addBaseModifier(String traitOrModifierId) {
-        return TicToolTraits.addBaseModifier(root, traitOrModifierId);
+        return TicTraits.addBaseModifier(root, traitOrModifierId);
     }
 
     @ZenMethod
     public boolean removeBaseModifier(String traitOrModifierId) {
-        return TicToolTraits.removeBaseModifier(root, traitOrModifierId);
+        return TicTraits.removeBaseModifier(root, traitOrModifierId);
     }
 
     @ZenMethod
     public String[] getStats() {
-        return TicStatPatches.getNumericStatKeys(TagUtil.getToolTag(root));
+        return TicStats.getStats(root);
     }
 
     @ZenMethod
     public boolean hasStat(String statName) {
-        return TicStatPatches.hasNumericStat(TagUtil.getToolTag(root), statName);
+        return TicStats.hasStat(root, statName);
     }
 
     @ZenMethod
     public float getFloatStat(String statName) {
-        if (!hasStat(statName)) {
-            return 0.0F;
-        }
-        return TagUtil.getToolTag(root).getFloat(statName);
+        return TicStats.getFloat(root, statName);
     }
 
     @ZenMethod
     public int getIntStat(String statName) {
-        if (!hasStat(statName)) {
-            return 0;
-        }
-        return TagUtil.getToolTag(root).getInteger(statName);
+        return TicStats.getInt(root, statName);
     }
 
     @ZenMethod
     public boolean addStat(String statName, float amount) {
-        NBTTagCompound stats = TagUtil.getToolTag(root).copy();
-        if (!TicStatPatches.addNumericStat(stats, statName, amount)) {
-            return false;
-        }
-        TagUtil.setToolTag(root, stats);
-        return true;
-    }
-
-    @ZenMethod
-    public boolean addIntStat(String statName, int amount) {
-        return addStat(statName, amount);
+        return TicStats.addNow(root, statName, amount);
     }
 }

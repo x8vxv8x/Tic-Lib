@@ -1,9 +1,12 @@
 package com.smd.ticlib;
 
-import com.smd.ticlib.stats.TicArmorStatModifier;
-import com.smd.ticlib.stats.TicToolStatModifier;
-import com.smd.ticlib.integration.crafttweaker.event.TicBuildEventForwarder;
-import com.smd.ticlib.util.TicArmorTraitCache;
+import com.smd.ticlib.core.lifecycle.TicLifecycleBus;
+import com.smd.ticlib.core.lifecycle.TicLifecycleEvents;
+import com.smd.ticlib.module.armor.ArmorTraitCacheModule;
+import com.smd.ticlib.module.crafttweaker.CraftTweakerBuildModule;
+import com.smd.ticlib.module.fluid.FluidEvents;
+import com.smd.ticlib.module.fluid.FluidModule;
+import com.smd.ticlib.module.stats.PersistentStatsModule;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.common.MinecraftForge;
@@ -20,10 +23,13 @@ public class TicLib {
 
     @Mod.EventHandler
     public void preInit(FMLPreInitializationEvent event) {
-        TicToolStatModifier.INSTANCE.getIdentifier();
-        TicArmorStatModifier.INSTANCE.getIdentifier();
-        MinecraftForge.EVENT_BUS.register(TicBuildEventForwarder.INSTANCE);
-        MinecraftForge.EVENT_BUS.register(TicArmorTraitCache.INSTANCE);
+        TicLifecycleBus.register(PersistentStatsModule.INSTANCE);
+        TicLifecycleBus.register(FluidModule.INSTANCE);
+        TicLifecycleBus.register(CraftTweakerBuildModule.INSTANCE);
+        MinecraftForge.EVENT_BUS.register(TicLifecycleEvents.INSTANCE);
+        MinecraftForge.EVENT_BUS.register(FluidEvents.INSTANCE);
+        MinecraftForge.EVENT_BUS.register(CraftTweakerBuildModule.INSTANCE);
+        MinecraftForge.EVENT_BUS.register(ArmorTraitCacheModule.INSTANCE);
         LOGGER.info("Hello From {}!", Tags.MOD_NAME);
     }
 

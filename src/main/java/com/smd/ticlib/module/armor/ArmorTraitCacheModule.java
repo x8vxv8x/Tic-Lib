@@ -1,5 +1,8 @@
-package com.smd.ticlib.util;
+package com.smd.ticlib.module.armor;
 
+import com.smd.ticlib.api.TicTraits;
+import com.smd.ticlib.core.nbt.TicNbt;
+import com.smd.ticlib.core.target.TicTargets;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.EntityEquipmentSlot;
 import net.minecraft.item.ItemStack;
@@ -17,9 +20,9 @@ import java.util.Set;
 import java.util.UUID;
 
 @SuppressWarnings("unchecked")
-public final class TicArmorTraitCache {
+public final class ArmorTraitCacheModule {
 
-    public static final TicArmorTraitCache INSTANCE = new TicArmorTraitCache();
+    public static final ArmorTraitCacheModule INSTANCE = new ArmorTraitCacheModule();
 
     private static final EntityEquipmentSlot[] ARMOR_SLOTS = {
             EntityEquipmentSlot.HEAD,
@@ -30,34 +33,31 @@ public final class TicArmorTraitCache {
 
     private final Map<UUID, ArmorTraitSnapshot> cache = new HashMap<>();
 
-    private TicArmorTraitCache() {
+    private ArmorTraitCacheModule() {
     }
 
-    public String[] getArmorTraits(EntityPlayer player) {
+    public String[] getTraits(EntityPlayer player) {
         return getSnapshot(player).copyAllTraits();
     }
 
-    public String[] getArmorSlotTraits(EntityPlayer player, String slotName) {
-        return getArmorSlotTraits(player, TicToolStacks.parseArmorSlot(slotName));
+    public String[] getSlotTraits(EntityPlayer player, String slotName) {
+        return getSlotTraits(player, TicTargets.parseArmorSlot(slotName));
     }
 
-    public String[] getArmorSlotTraits(EntityPlayer player, EntityEquipmentSlot slot) {
-        int index = TicToolStacks.armorSlotIndex(slot);
-        if (index < 0) {
-            return TicToolNbt.EMPTY_STRINGS;
-        }
-        return getSnapshot(player).copySlotTraits(index);
+    public String[] getSlotTraits(EntityPlayer player, EntityEquipmentSlot slot) {
+        int index = TicTargets.armorSlotIndex(slot);
+        return index < 0 ? TicNbt.EMPTY_STRINGS : getSnapshot(player).copySlotTraits(index);
     }
 
-    public boolean hasArmorTrait(EntityPlayer player, String traitId) {
+    public boolean hasTrait(EntityPlayer player, String traitId) {
         return traitId != null && !traitId.trim().isEmpty() && getSnapshot(player).allTraitSet.contains(traitId);
     }
 
-    public boolean hasArmorSlotTrait(EntityPlayer player, String slotName, String traitId) {
+    public boolean hasSlotTrait(EntityPlayer player, String slotName, String traitId) {
         if (traitId == null || traitId.trim().isEmpty()) {
             return false;
         }
-        int index = TicToolStacks.armorSlotIndex(TicToolStacks.parseArmorSlot(slotName));
+        int index = TicTargets.armorSlotIndex(TicTargets.parseArmorSlot(slotName));
         return index >= 0 && getSnapshot(player).slotTraitSets[index].contains(traitId);
     }
 
@@ -77,13 +77,9 @@ public final class TicArmorTraitCache {
 
     @SubscribeEvent
     public void onLivingEquipmentChange(LivingEquipmentChangeEvent event) {
-        if (!(event.getEntityLiving() instanceof EntityPlayer)) {
-            return;
+        if (event.getEntityLiving() instanceof EntityPlayer && TicTargets.armorSlotIndex(event.getSlot()) >= 0) {
+            refresh((EntityPlayer) event.getEntityLiving());
         }
-        if (TicToolStacks.armorSlotIndex(event.getSlot()) < 0) {
-            return;
-        }
-        refresh((EntityPlayer) event.getEntityLiving());
     }
 
     @SubscribeEvent
@@ -122,7 +118,7 @@ public final class TicArmorTraitCache {
 
         for (int i = 0; i < ARMOR_SLOTS.length; i++) {
             ItemStack stack = player.getItemStackFromSlot(ARMOR_SLOTS[i]);
-            String[] traits = TicToolStacks.isTicArmor(stack) ? TicToolTraits.getTraits(stack) : TicToolNbt.EMPTY_STRINGS;
+            String[] traits = TicTargets.isArmor(stack) ? TicTraits.getTraits(stack) : TicNbt.EMPTY_STRINGS;
             slotTraits[i] = traits;
             slotTraitSets[i] = toSet(traits);
             allTraitSet.addAll(slotTraitSets[i]);
@@ -148,20 +144,10 @@ public final class TicArmorTraitCache {
 
     private static final class ArmorTraitSnapshot {
         static final ArmorTraitSnapshot EMPTY = new ArmorTraitSnapshot(
-                new String[][]{
-                        TicToolNbt.EMPTY_STRINGS,
-                        TicToolNbt.EMPTY_STRINGS,
-                        TicToolNbt.EMPTY_STRINGS,
-                        TicToolNbt.EMPTY_STRINGS
-                },
-                TicToolNbt.EMPTY_STRINGS,
+                new String[][]{TicNbt.EMPTY_STRINGS, TicNbt.EMPTY_STRINGS, TicNbt.EMPTY_STRINGS, TicNbt.EMPTY_STRINGS},
+                TicNbt.EMPTY_STRINGS,
                 Collections.emptySet(),
-                new Set[]{
-                        Collections.emptySet(),
-                        Collections.emptySet(),
-                        Collections.emptySet(),
-                        Collections.emptySet()
-                }
+                new Set[]{Collections.emptySet(), Collections.emptySet(), Collections.emptySet(), Collections.emptySet()}
         );
 
         private final String[][] slotTraits;
@@ -177,12 +163,12 @@ public final class TicArmorTraitCache {
         }
 
         private String[] copyAllTraits() {
-            return allTraits.length == 0 ? TicToolNbt.EMPTY_STRINGS : Arrays.copyOf(allTraits, allTraits.length);
+            return allTraits.length == 0 ? TicNbt.EMPTY_STRINGS : Arrays.copyOf(allTraits, allTraits.length);
         }
 
         private String[] copySlotTraits(int index) {
             String[] traits = slotTraits[index];
-            return traits.length == 0 ? TicToolNbt.EMPTY_STRINGS : Arrays.copyOf(traits, traits.length);
+            return traits.length == 0 ? TicNbt.EMPTY_STRINGS : Arrays.copyOf(traits, traits.length);
         }
     }
 }

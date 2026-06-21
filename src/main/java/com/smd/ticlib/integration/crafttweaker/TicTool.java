@@ -1,9 +1,12 @@
 package com.smd.ticlib.integration.crafttweaker;
 
-import com.smd.ticlib.util.TicArmorTraitCache;
-import com.smd.ticlib.util.TicToolStacks;
-import com.smd.ticlib.util.TicToolStats;
-import com.smd.ticlib.util.TicToolTraits;
+import com.smd.ticlib.api.TicArmor;
+import com.smd.ticlib.api.TicFluids;
+import com.smd.ticlib.api.TicItems;
+import com.smd.ticlib.api.TicStats;
+import com.smd.ticlib.api.TicTraits;
+import com.smd.ticlib.module.fluid.TicFluidAccess;
+import com.smd.ticlib.module.fluid.TicFluidOperationResult;
 import crafttweaker.annotations.ZenRegister;
 import crafttweaker.api.entity.IEntityEquipmentSlot;
 import crafttweaker.api.item.IItemStack;
@@ -12,6 +15,7 @@ import crafttweaker.api.player.IPlayer;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.EntityEquipmentSlot;
 import net.minecraft.item.ItemStack;
+import net.minecraftforge.fluids.FluidStack;
 import stanhebben.zenscript.annotations.ZenClass;
 import stanhebben.zenscript.annotations.ZenMethod;
 
@@ -24,53 +28,53 @@ public final class TicTool {
 
     @ZenMethod
     public static boolean isTool(IItemStack stack) {
-        return TicToolStacks.isTicTool(toStackCopy(stack));
+        return TicItems.isTool(toStackCopy(stack));
     }
 
     @ZenMethod
     public static IItemStack[] getAllItems() {
-        return CraftTweakerMC.getIItemStacks(TicToolStacks.getAllKnownTicItems());
+        return CraftTweakerMC.getIItemStacks(TicItems.getAllKnownItems());
     }
 
     @ZenMethod
     public static boolean isArmor(IItemStack stack) {
-        return TicToolStacks.isTicArmor(toStackCopy(stack));
+        return TicItems.isArmor(toStackCopy(stack));
     }
 
     @ZenMethod
     public static String getArmorType(IItemStack stack) {
-        return TicToolStacks.getArmorType(toStackCopy(stack));
+        return TicItems.getArmorType(toStackCopy(stack));
     }
 
     @ZenMethod
     public static IEntityEquipmentSlot getArmorSlot(IItemStack stack) {
-        EntityEquipmentSlot slot = TicToolStacks.getArmorSlot(toStackCopy(stack));
+        EntityEquipmentSlot slot = TicItems.getArmorSlot(toStackCopy(stack));
         return slot == null ? null : CraftTweakerMC.getIEntityEquipmentSlot(slot);
     }
 
     @ZenMethod
     public static String[] getMaterials(IItemStack stack) {
-        return TicToolStacks.getMaterials(toStackCopy(stack));
+        return TicItems.getMaterials(toStackCopy(stack));
     }
 
     @ZenMethod
     public static String[] getTraits(IItemStack stack) {
-        return TicToolTraits.getTraits(toStackCopy(stack));
+        return TicTraits.getTraits(toStackCopy(stack));
     }
 
     @ZenMethod
     public static boolean hasTrait(IItemStack stack, String traitId) {
-        return TicToolTraits.hasTrait(toStackCopy(stack), traitId);
+        return TicTraits.hasTrait(toStackCopy(stack), traitId);
     }
 
     @ZenMethod
     public static int getTraitColor(IItemStack stack, String traitId) {
-        return TicToolTraits.getTraitColor(toStackCopy(stack), traitId);
+        return TicTraits.getTraitColor(toStackCopy(stack), traitId);
     }
 
     @ZenMethod
     public static int getTraitLevel(IItemStack stack, String traitId) {
-        return TicToolTraits.getTraitLevel(toStackCopy(stack), traitId);
+        return TicTraits.getTraitLevel(toStackCopy(stack), traitId);
     }
 
     @ZenMethod
@@ -80,7 +84,7 @@ public final class TicTool {
 
     @ZenMethod
     public static boolean applyRegisteredTrait(IItemStack stack, String traitId, int color, int level) {
-        return TicToolTraits.applyRegisteredTrait(toMutableStack(stack), traitId, color, level);
+        return TicTraits.addRegisteredTrait(toMutableStack(stack), traitId, color, level);
     }
 
     @ZenMethod
@@ -90,7 +94,7 @@ public final class TicTool {
 
     @ZenMethod
     public static boolean removeRegisteredTrait(IItemStack stack, String traitId) {
-        return TicToolTraits.removeRegisteredTrait(toMutableStack(stack), traitId);
+        return TicTraits.removeRegisteredTrait(toMutableStack(stack), traitId);
     }
 
     @ZenMethod
@@ -100,7 +104,7 @@ public final class TicTool {
 
     @ZenMethod
     public static IItemStack withRegisteredTrait(IItemStack stack, String traitId, int color, int level) {
-        return CraftTweakerMC.getIItemStack(TicToolTraits.withRegisteredTrait(toStackCopy(stack), traitId, color, level));
+        return CraftTweakerMC.getIItemStack(TicTraits.withRegisteredTrait(toStackCopy(stack), traitId, color, level));
     }
 
     @ZenMethod
@@ -110,67 +114,107 @@ public final class TicTool {
 
     @ZenMethod
     public static IItemStack withoutRegisteredTrait(IItemStack stack, String traitId) {
-        return CraftTweakerMC.getIItemStack(TicToolTraits.withoutRegisteredTrait(toStackCopy(stack), traitId));
+        return CraftTweakerMC.getIItemStack(TicTraits.withoutRegisteredTrait(toStackCopy(stack), traitId));
     }
 
     @ZenMethod
     public static boolean setBroken(IItemStack stack, boolean broken) {
-        return TicToolStats.setBroken(toMutableStack(stack), broken);
+        return TicStats.setBroken(toMutableStack(stack), broken);
     }
 
     @ZenMethod
     public static String[] getStats(IItemStack stack) {
-        return TicToolStats.getStats(toStackCopy(stack));
+        return TicStats.getStats(toStackCopy(stack));
     }
 
     @ZenMethod
     public static boolean hasStat(IItemStack stack, String statName) {
-        return TicToolStats.hasStat(toStackCopy(stack), statName);
+        return TicStats.hasStat(toStackCopy(stack), statName);
     }
 
     @ZenMethod
     public static float getFloatStat(IItemStack stack, String statName) {
-        return TicToolStats.getFloatStat(toStackCopy(stack), statName);
+        return TicStats.getFloat(toStackCopy(stack), statName);
     }
 
     @ZenMethod
     public static int getIntStat(IItemStack stack, String statName) {
-        return TicToolStats.getIntStat(toStackCopy(stack), statName);
+        return TicStats.getInt(toStackCopy(stack), statName);
     }
 
     @ZenMethod
     public static boolean addStat(IItemStack stack, String statName, float amount, String token) {
-        return TicToolStats.addStat(toMutableStack(stack), statName, amount, token);
+        return TicStats.add(toMutableStack(stack), statName, amount, token);
     }
 
     @ZenMethod
-    public static boolean addIntStat(IItemStack stack, String statName, int amount, String token) {
-        return TicToolStats.addIntStat(toMutableStack(stack), statName, amount, token);
+    public static int getFluidCapacity(IItemStack stack) {
+        return TicFluids.of(toStackCopy(stack)).primaryCapacity();
+    }
+
+    @ZenMethod
+    public static boolean setFluidCapacity(IItemStack stack, int capacity) {
+        return TicFluids.of(toMutableStack(stack)).setPrimaryCapacity(capacity);
+    }
+
+    @ZenMethod
+    public static int getFluidAmount(IItemStack stack) {
+        FluidStack fluid = TicFluids.of(toStackCopy(stack)).primaryFluid();
+        return fluid == null ? 0 : fluid.amount;
+    }
+
+    @ZenMethod
+    public static String getFluidName(IItemStack stack) {
+        FluidStack fluid = TicFluids.of(toStackCopy(stack)).primaryFluid();
+        return fluid == null || fluid.getFluid() == null ? "" : fluid.getFluid().getName();
+    }
+
+    @ZenMethod
+    public static boolean clearFluid(IItemStack stack) {
+        return TicFluids.of(toMutableStack(stack)).clearPrimaryFluid();
+    }
+
+    @ZenMethod
+    public static boolean hasAnyFluidTank(IItemStack stack) {
+        return TicFluids.of(toStackCopy(stack)).hasAnyTank();
+    }
+
+    @ZenMethod
+    public static int fillFluid(IItemStack stack, String fluidName, int amount, boolean doFill) {
+        if (fluidName == null || fluidName.trim().isEmpty() || amount <= 0) {
+            return 0;
+        }
+        net.minecraftforge.fluids.Fluid fluid = net.minecraftforge.fluids.FluidRegistry.getFluid(fluidName);
+        if (fluid == null) {
+            return 0;
+        }
+        TicFluidOperationResult result = TicFluids.of(toMutableStack(stack)).fill(new FluidStack(fluid, amount), doFill);
+        return result.amount();
     }
 
     @ZenMethod
     public static String[] getArmorTraits(IPlayer player) {
-        return TicArmorTraitCache.INSTANCE.getArmorTraits(toPlayer(player));
+        return TicArmor.getTraits(toPlayer(player));
     }
 
     @ZenMethod
     public static String[] getArmorSlotTraits(IPlayer player, String slotName) {
-        return TicArmorTraitCache.INSTANCE.getArmorSlotTraits(toPlayer(player), slotName);
+        return TicArmor.getSlotTraits(toPlayer(player), slotName);
     }
 
     @ZenMethod
     public static boolean hasArmorTrait(IPlayer player, String traitId) {
-        return TicArmorTraitCache.INSTANCE.hasArmorTrait(toPlayer(player), traitId);
+        return TicArmor.hasTrait(toPlayer(player), traitId);
     }
 
     @ZenMethod
     public static boolean hasArmorSlotTrait(IPlayer player, String slotName, String traitId) {
-        return TicArmorTraitCache.INSTANCE.hasArmorSlotTrait(toPlayer(player), slotName, traitId);
+        return TicArmor.hasSlotTrait(toPlayer(player), slotName, traitId);
     }
 
     @ZenMethod
     public static boolean refreshArmorCache(IPlayer player) {
-        return TicArmorTraitCache.INSTANCE.refresh(toPlayer(player));
+        return TicArmor.refreshCache(toPlayer(player));
     }
 
     private static ItemStack toStackCopy(IItemStack stack) {
