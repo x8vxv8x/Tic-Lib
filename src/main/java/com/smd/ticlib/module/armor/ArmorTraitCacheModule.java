@@ -3,6 +3,7 @@ package com.smd.ticlib.module.armor;
 import com.smd.ticlib.api.TicTraits;
 import com.smd.ticlib.core.nbt.TicNbt;
 import com.smd.ticlib.core.target.TicTargets;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.EntityEquipmentSlot;
 import net.minecraft.item.ItemStack;
@@ -65,13 +66,13 @@ public final class ArmorTraitCacheModule {
         if (player == null) {
             return false;
         }
-        cache.put(player.getUniqueID(), buildSnapshot(player));
+        cache.put(playerId(player), buildSnapshot(player));
         return true;
     }
 
     public void clear(EntityPlayer player) {
         if (player != null) {
-            cache.remove(player.getUniqueID());
+            cache.remove(playerId(player));
         }
     }
 
@@ -102,12 +103,17 @@ public final class ArmorTraitCacheModule {
         if (player == null) {
             return ArmorTraitSnapshot.EMPTY;
         }
-        ArmorTraitSnapshot snapshot = cache.get(player.getUniqueID());
+        UUID playerId = playerId(player);
+        ArmorTraitSnapshot snapshot = cache.get(playerId);
         if (snapshot == null) {
             snapshot = buildSnapshot(player);
-            cache.put(player.getUniqueID(), snapshot);
+            cache.put(playerId, snapshot);
         }
         return snapshot;
+    }
+
+    private static UUID playerId(EntityPlayer player) {
+        return ((Entity) player).getUniqueID();
     }
 
     private ArmorTraitSnapshot buildSnapshot(EntityPlayer player) {
