@@ -24,6 +24,10 @@ public final class TicArmor {
         return ArmorTraitCacheModule.INSTANCE.hasSlotTrait(player, slotName, traitId);
     }
 
+    public static int hasTraitAmount(EntityPlayer player, String traitId) {
+        return ArmorTraitCacheModule.INSTANCE.countTraitOccurrences(player, traitId);
+    }
+
     public static boolean refreshCache(EntityPlayer player) {
         return ArmorTraitCacheModule.INSTANCE.refresh(player);
     }

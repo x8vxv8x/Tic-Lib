@@ -116,6 +116,27 @@ public final class ArmorTraitCacheModule {
         return ((Entity) player).getUniqueID();
     }
 
+    /**
+     * 获取玩家有多少个护甲槽位穿着带有指定词条的匠魂护甲。
+     *
+     * @param player  目标玩家
+     * @param traitId 词条标识符
+     * @return 槽位数量（0~4）
+     */
+    public int countTraitOccurrences(EntityPlayer player, String traitId) {
+        if (traitId == null || traitId.trim().isEmpty()) {
+            return 0;
+        }
+        ArmorTraitSnapshot snapshot = getSnapshot(player);
+        int count = 0;
+        for (Set<String> slotSet : snapshot.slotTraitSets) {
+            if (slotSet.contains(traitId)) {
+                count++;
+            }
+        }
+        return count;
+    }
+
     private ArmorTraitSnapshot buildSnapshot(EntityPlayer player) {
         String[][] slotTraits = new String[ARMOR_SLOTS.length][];
         Set<String>[] slotTraitSets = new Set[ARMOR_SLOTS.length];

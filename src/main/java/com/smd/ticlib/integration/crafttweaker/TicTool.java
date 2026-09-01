@@ -213,6 +213,11 @@ public final class TicTool {
     }
 
     @ZenMethod
+    public static int hasTraitAmount(IPlayer player, String traitId) {
+        return TicArmor.hasTraitAmount(toPlayer(player), traitId);
+    }
+
+    @ZenMethod
     public static boolean refreshArmorCache(IPlayer player) {
         return TicArmor.refreshCache(toPlayer(player));
     }
